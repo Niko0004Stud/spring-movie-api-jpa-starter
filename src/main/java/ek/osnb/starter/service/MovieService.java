@@ -1,7 +1,11 @@
 package ek.osnb.starter.service;
 
 import ek.osnb.starter.exceptions.NotFoundException;
+import ek.osnb.starter.model.Actor;
 import ek.osnb.starter.model.Movie;
+import ek.osnb.starter.model.MovieDetails;
+import ek.osnb.starter.repository.ActorRepository;
+import ek.osnb.starter.repository.MovieDetailsRepository;
 import ek.osnb.starter.repository.MovieRepository;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +15,16 @@ import java.util.Optional;
 @Service
 public class MovieService {
     private final MovieRepository movieRepository;
+    private final ActorRepository actorRepository;
+    private final ActorService actorService;
+    private final MovieDetailsRepository movieDetailsRepository;
 
-    public MovieService(MovieRepository movieRepository) {
+
+    public MovieService(MovieRepository movieRepository, ActorRepository actorRepository, ActorService actorService, MovieDetailsRepository movieDetailsRepository) {
         this.movieRepository = movieRepository;
+        this.actorRepository = actorRepository;
+        this.actorService = actorService;
+        this.movieDetailsRepository = movieDetailsRepository;
     }
 
     public Movie createMovie(Movie movie) {
@@ -37,5 +48,37 @@ public class MovieService {
 
     public void deleteMovie(Long id) {
         movieRepository.deleteById(id);
+    }
+
+    public Movie addActorToMovie(Long movieId, Long actorId){
+        Optional<Movie> movieOptional = movieRepository.findById(movieId);
+        Optional<Actor> actorOptional = actorRepository.findById(actorId);
+        if (movieOptional.isEmpty()){
+            throw new NotFoundException("Movie not found with id: "+movieId);
+        } else if (actorOptional.isEmpty()) {
+            throw new NotFoundException("Actor not found with id: "+actorId);
+        } else {
+            Actor actor = actorService.getActorById(actorId);
+            Movie movie = getMovieById(movieId);
+            movie.addActor(actor);
+
+            movieRepository.save(movie);
+
+            return movie;
+        }
+    }
+
+    public Movie addDetailsToMovie(Long movieId, MovieDetails details) {
+        Optional<Movie> movieOptional = movieRepository.findById((movieId));
+        if (movieOptional.isEmpty()){
+            throw new NotFoundException("Movie not found with id: "+movieId);
+        } else {
+            movieDetailsRepository.save(details);
+            Movie movie = getMovieById(movieId);
+            movie.setMovieDetails(details);
+            details.setMovie(movie);
+            movieRepository.save(movie);
+            return movie;
+        }
     }
 }
