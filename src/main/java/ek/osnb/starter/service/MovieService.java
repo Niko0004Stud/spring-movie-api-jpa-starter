@@ -69,16 +69,12 @@ public class MovieService {
     }
 
     public Movie addDetailsToMovie(Long movieId, MovieDetails details) {
-        Optional<Movie> movieOptional = movieRepository.findById((movieId));
-        if (movieOptional.isEmpty()){
-            throw new NotFoundException("Movie not found with id: "+movieId);
-        } else {
-            movieDetailsRepository.save(details);
-            Movie movie = getMovieById(movieId);
-            movie.setMovieDetails(details);
-            details.setMovie(movie);
-            movieRepository.save(movie);
-            return movie;
-        }
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new RuntimeException("Movie not found"));
+
+        movie.setMovieDetails(details);
+        details.setMovie(movie);
+
+        return movieRepository.save(movie);
     }
 }

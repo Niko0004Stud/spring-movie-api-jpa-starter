@@ -27,10 +27,8 @@ public class Movie {
     )
     private List<Actor> actors = new ArrayList<>();
 
-    @OneToOne
-    @JoinColumn(
-            name = "movie_details_id"
-    )
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @JoinColumn(name = "movie_details_id")
     private MovieDetails movieDetails;
 
     public Movie() {}
